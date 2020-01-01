@@ -1,5 +1,3 @@
-'use strict';
-// Source: src/utils/util.array.js
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -185,7 +183,102 @@ Array.prototype.average = function () {
     return this.sum() / this.length;
 };
 
-// Source: src/utils/util.string.js
+
+/*
+ * Purpose :
+ * A CGSGObject object with inheritance.
+ * Usage:
+ *  var Locomotion = CGSGObject.extend({
+ *      initialize: function(name){
+ *          this.name = name;
+ *      },
+ *
+ *      sayHello : function() {
+ *          return ("hello " + this.name);
+ *      }
+ *  });
+ *
+ *  var Car = Locomotion.extend({
+ *      initialize: function(name) {
+ *          this._super(name);
+ *          this.power = 100;
+ *      }
+ *  });
+ *
+ * From documentation by John Resig (http://ejohn.org/)
+ */
+/* jshint ignore:start */
+(function () {
+    // The base CGSGObject implementation (does nothing)
+    // this.CGSGObject = function () {
+    // };
+    if(this){
+        this.CGSGObject = function () {
+        };
+    }
+    var initializing = false;
+    var fnTest = /xyz/.test(function () {
+        xyz;
+    }) ? /\b_super\b/ : /.*/;
+
+
+    // Create a new CGSGObject that inherits from this class
+    CGSGObject.extend = function (prop) {
+        var _super = this.prototype;
+
+        // Instantiate a base class (but only create the instance,
+        // don't run the init constructor)
+        initializing = true;
+        var prototype = new this();
+        initializing = false;
+
+        // Copy the properties over onto the new prototype
+        for (var name in prop) {
+            // Check if we're overwriting an existing function
+            //noinspection JSUnfilteredForInLoop
+            prototype[name] = typeof prop[name] === "function" &&
+            typeof _super[name] === "function" && fnTest.test(prop[name]) ?
+                (function (name, fn) {
+                    return function () {
+                        var tmp = this._super;
+
+                        // Add a new ._super() method that is the same method
+                        // but on the super-class
+                        this._super = _super[name];
+
+                        // The method only need to be bound temporarily, so we
+                        // remove it when we're done executing
+                        var ret = fn.apply(this, arguments);
+                        this._super = tmp;
+
+                        return ret;
+                    };
+                })(name, prop[name]) :
+                prop[name];
+        }
+
+        // The dummy class constructor
+        function CGSGObject() {
+            // All construction is actually done in the initialize method
+            if (!initializing && this.initialize) {
+                this.initialize.apply(this, arguments);
+            }
+        }
+
+        // Populate our constructed prototype object
+        CGSGObject.prototype = prototype;
+
+        // Enforce the constructor to be what we expect
+        CGSGObject.prototype.constructor = CGSGObject;
+
+        // And make this class extendable
+        CGSGObject.extend = arguments.callee;
+
+        return CGSGObject;
+    };
+})();
+/* jshint ignore:end */
+
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -262,100 +355,7 @@ String.prototype.capitalize = function (lower) {
 };
 
 
-// Source: src/utils/class.class.js
-/*
- * Purpose :
- * A CGSGObject object with inheritance.
- * Usage:
- *  var Locomotion = CGSGObject.extend({
- *      initialize: function(name){
- *          this.name = name;
- *      },
- *
- *      sayHello : function() {
- *          return ("hello " + this.name);
- *      }
- *  });
- *
- *  var Car = Locomotion.extend({
- *      initialize: function(name) {
- *          this._super(name);
- *          this.power = 100;
- *      }
- *  });
- *
- * From documentation by John Resig (http://ejohn.org/)
- */
-/* jshint ignore:start */
-(function () {
-    // The base CGSGObject implementation (does nothing)
-    this.CGSGObject = null;
-    this.CGSGObject = function () {
-    };
 
-    var initializing = false;
-    var fnTest = /xyz/.test(function () {
-        xyz;
-    }) ? /\b_super\b/ : /.*/;
-
-
-    // Create a new CGSGObject that inherits from this class
-    CGSGObject.extend = function (prop) {
-        var _super = this.prototype;
-
-        // Instantiate a base class (but only create the instance,
-        // don't run the init constructor)
-        initializing = true;
-        var prototype = new this();
-        initializing = false;
-
-        // Copy the properties over onto the new prototype
-        for (var name in prop) {
-            // Check if we're overwriting an existing function
-            //noinspection JSUnfilteredForInLoop
-            prototype[name] = typeof prop[name] === "function" &&
-            typeof _super[name] === "function" && fnTest.test(prop[name]) ?
-                (function (name, fn) {
-                    return function () {
-                        var tmp = this._super;
-
-                        // Add a new ._super() method that is the same method
-                        // but on the super-class
-                        this._super = _super[name];
-
-                        // The method only need to be bound temporarily, so we
-                        // remove it when we're done executing
-                        var ret = fn.apply(this, arguments);
-                        this._super = tmp;
-
-                        return ret;
-                    };
-                })(name, prop[name]) :
-                prop[name];
-        }
-
-        // The dummy class constructor
-        function CGSGObject() {
-            // All construction is actually done in the initialize method
-            if (!initializing && this.initialize) {
-                this.initialize.apply(this, arguments);
-            }
-        }
-
-        // Populate our constructed prototype object
-        CGSGObject.prototype = prototype;
-
-        // Enforce the constructor to be what we expect
-        CGSGObject.prototype.constructor = CGSGObject;
-
-        // And make this class extendable
-        CGSGObject.extend = arguments.callee;
-
-        return CGSGObject;
-    };
-})();
-/* jshint ignore:end */
-// Source: src/utils/class.map.js
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -392,7 +392,8 @@ String.prototype.capitalize = function (lower) {
 var CGSGMap = CGSGObject.extend(
     {
         initialize: function () {
-this._map = {};
+            "use strict";
+            this._map = {};
 
             this._map.keys = [];
             this._map.values = [];
@@ -522,7 +523,7 @@ this._map = {};
 
     }
 );
-// Source: src/utils/util.color.js
+
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -884,7 +885,7 @@ var CGSGColor = {
         return {r: r * 255, g: g * 255, b: b * 255};
     }
 
-};// Source: src/utils/math/class.vector2D.js
+};
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -1239,7 +1240,7 @@ var CGSGVector2D = CGSGObject.extend(
     }
 );
 
-// Source: src/utils/class.region.js
+
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -1278,7 +1279,8 @@ var CGSGVector2D = CGSGObject.extend(
 var CGSGPosition = CGSGVector2D.extend(
     {
         initialize: function (x, y) {
-this._super(x, y);
+            'use strict';
+            this._super(x, y);
         },
 
         /**
@@ -1621,7 +1623,7 @@ var CGSGRegion = CGSGObject.extend(
     }
 );
 
-// Source: src/constants.js
+
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -1729,7 +1731,7 @@ var CGSG_DEFAULT_MAX_FRAMERATE = NaN;
  * @type {Number}
  */
 var CGSG_DEFAULT_DBLTOUCH_DELAY = 250;
-// Source: src/utils/class.traverser.js
+
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -1826,7 +1828,7 @@ var CGSGTraverser = CGSGObject.extend(
             }
         }
     }
-);// Source: src/utils/class.imgManager.js
+);
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -1895,7 +1897,7 @@ var CGSGImgManager = CGSGObject.extend(
     }
 );
 
-var cgsgImgManager = new CGSGImgManager();// Source: src/event/class.event.js
+var cgsgImgManager = new CGSGImgManager();
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -1936,7 +1938,9 @@ var cgsgImgManager = new CGSGImgManager();// Source: src/event/class.event.js
 var CGSGEvent = CGSGObject.extend(
     {
         initialize: function (trigger, data) {
-/**
+            'use strict';
+
+            /**
              * Object which has created this event
              * @property trigger
              * @type {Object} the trigger
@@ -1976,7 +1980,7 @@ var CGSGEvent = CGSGObject.extend(
         }
     }
 );
-// Source: src/event/class.eventmanager.js
+
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -2218,7 +2222,7 @@ var CGSGEventManager = CGSGObject.extend(
             return this._handlerPropertyPrefix + eventName;
         }
     }
-);// Source: src/theme/class.CSSManager.js
+);
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -2557,7 +2561,7 @@ var CGSGCSSManager = CGSGObject.extend(
         }
 
     }
-);// Source: src/animation/class.keyframe.js
+);
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -2636,7 +2640,7 @@ var CGSGKeyFrame = CGSGObject.extend(
         }
     }
 );
-// Source: src/interpolator/class.interpolator.js
+
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -2693,7 +2697,7 @@ var CGSGInterpolator = CGSGObject.extend(
         getLengths: function () {
         }
     }
-);// Source: src/interpolator/class.interpolator.linear.js
+);
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -2773,7 +2777,7 @@ var CGSGInterpolatorLinear = CGSGInterpolator.extend(
         }
 
     }
-);// Source: src/interpolator/class.interpolator.TCB.js
+);
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -2933,7 +2937,7 @@ var CGSGInterpolatorTCB = CGSGInterpolator.extend(
         }
 
     }
-);// Source: src/animation/class.anim.timeline.js
+);
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -3276,7 +3280,7 @@ var CGSGTimeline = CGSGObject.extend(
         }
     }
 );
-// Source: src/animation/class.animmanager.js
+
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -3448,7 +3452,7 @@ var CGSGAnimationManager = CGSGObject.extend(
         }
     }
 );
-// Source: src/collision/enum.collision.method.js
+
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -3495,7 +3499,7 @@ var CGSGCollisionMethod = {
     REGION: "region"
 };
 
-// Source: src/collision/class.collision.tester.region.js
+
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -3569,7 +3573,7 @@ var CGSGCollisionRegionTester = CGSGObject.extend(
         }
     }
 );
-// Source: src/collision/class.collision.tester.ghost.ondemand.js
+
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -3685,7 +3689,7 @@ var CGSGCollisionGhostOnDemandTester = CGSGObject.extend(
         }
     }
 );
-// Source: src/collision/class.collision.tester.factory.js
+
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -3722,7 +3726,9 @@ var CGSGCollisionGhostOnDemandTester = CGSGObject.extend(
 var CGSGCollisionTesterFactory = CGSGObject.extend(
     {
         initialize: function () {
-this.collisionTesters = new CGSGMap();
+            'use strict';
+
+            this.collisionTesters = new CGSGMap();
 
             // initialize collision testers
             this.collisionTesters.addOrReplace(CGSGCollisionMethod.REGION, new CGSGCollisionRegionTester());
@@ -3742,7 +3748,7 @@ this.collisionTesters = new CGSGMap();
     }
 );
 
-// Source: src/collision/class.collision.manager.js
+
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -3780,7 +3786,8 @@ this.collisionTesters = new CGSGMap();
 var CGSGCollisionManager = CGSGObject.extend(
     {
         initialize: function () {
-},
+            'use strict';
+        },
 
         /**
          * Indicate if two nodes are colliding
@@ -3819,7 +3826,7 @@ var CGSGCollisionManager = CGSGObject.extend(
     }
 );
 
-// Source: src/globals.js
+
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -4162,7 +4169,7 @@ var cgsgEventTypes = {
     ON_TAB_CHANGED: "onTabChanged"
 };
 
-// Source: src/utils/util.global.js
+
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -4437,7 +4444,7 @@ function cgsgFree(object) {
         CGSG.eventManager.dispatch(object, cgsgEventTypes.ON_FREE, new CGSGEvent(this, null));
     }
     object = null;
-}// Source: src/mask/class.mask.js
+}
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -4588,7 +4595,7 @@ var CGSGMask = CGSGObject.extend(
         }
     }
 );
-// Source: src/mask/class.mask.clip.js
+
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -4753,7 +4760,7 @@ var CGSGMaskClip = CGSGMask.extend(
         }
     }
 );
-// Source: src/utils/math/math.js
+
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -4846,7 +4853,7 @@ var CGSGMath = {
         return from + (to - from) * weight;
     }
 };
-// Source: src/utils/class.handlebox.js
+
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -4990,7 +4997,7 @@ var CGSGHandleBox = CGSGObject.extend(
         }
     }
 );
-	// Source: src/node/class.node.js
+	
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -7430,7 +7437,7 @@ var CGSGNode = CGSGObject.extend(
             }
         }
     )
-    ;// Source: src/node/class.node.dom.js
+    ;
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -7554,7 +7561,7 @@ var CGSGNodeDomElement = CGSGNode.extend(
         }
     }
 );
-// Source: src/node/class.node.line.js
+
 /**
  * A CGSGNodeLine represent a basic line
  *
@@ -7569,7 +7576,8 @@ var CGSGNodeDomElement = CGSGNode.extend(
 var CGSGNodeLine = CGSGNode.extend(
     {
         initialize: function (pts) {
-this._pts = pts.copy();
+            'use strict';
+            this._pts = pts.copy();
             this._nbPts = this._pts.length;
             this._minX = 0;
             this._minY = 0;
@@ -7818,7 +7826,7 @@ this._pts = pts.copy();
         }
 
     }
-);// Source: src/node/class.node.curveTCB.js
+);
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -7961,7 +7969,7 @@ var CGSGNodeCurveTCB = CGSGNode.extend(
         }
     }
 );
-// Source: src/node/class.node.colorPicker.js
+
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -8180,7 +8188,7 @@ var CGSGNodeColorPicker = CGSGNode.extend(
 
     }
 );
-// Source: src/node/class.node.tabMenu.js
+
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -8402,7 +8410,7 @@ var CGSGNodeTabMenu = CGSGNode.extend(
         }
     }
 );
-// Source: src/node/class.node.text.js
+
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -9279,7 +9287,7 @@ var CGSGNodeText = CGSGNode.extend(
         }
     }
 );
-// Source: src/node/class.node.webview.js
+
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -9586,7 +9594,7 @@ var CGSGNodeWebview = CGSGNodeDomElement.extend(
         }
     }
 );
-// Source: src/node/class.node.square.js
+
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -9709,7 +9717,7 @@ var CGSGNodeSquare = CGSGNode.extend(
         }
     }
 );
-// Source: src/node/class.node.slider.js
+
 /**
  * A CGSGNodeSliderHandle represent a slider handle
  *
@@ -9725,7 +9733,8 @@ var CGSGNodeSliderHandle = CGSGNode.extend(
     {
 
         initialize: function (handleWidth) {
-this._super(0, 0);
+            'use strict';
+            this._super(0, 0);
             this.resizeTo(handleWidth, handleWidth);
             this.bkgcolors = ["#CCCCCC"];
             this.rotationCenter = new CGSGPosition(0.5, 0.5);
@@ -10054,7 +10063,7 @@ var CGSGNodeSlider = CGSGNode.extend(
 
     }
 );
-// Source: src/node/class.node.circle.js
+
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -10187,7 +10196,7 @@ var CGSGNodeCircle = CGSGNode.extend(
         }
     }
 );
-// Source: src/node/class.node.ellipse.js
+
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -10336,7 +10345,7 @@ var CGSGNodeEllipse = CGSGNode.extend(
         }
     }
 );
-// Source: src/node/class.node.image.js
+
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -10680,7 +10689,7 @@ var CGSGNodeImage = CGSGNode.extend(
         }
     }
 );
-// Source: src/node/class.node.animatedSprite.js
+
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -11201,7 +11210,7 @@ var CGSGNodeSprite = CGSGNode.extend(
         }
     }
 );
-// Source: src/node/class.node.button.js
+
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -11230,7 +11239,8 @@ var CGSGNodeSprite = CGSGNode.extend(
 var CGSGNodeButtonProps = CGSGObject.extend(
     {
         initialize: function () {
-this.cls = [];
+            "use strict";
+            this.cls = [];
             this.firstColor = "";
             this.lastColor = "";
             this.shadowColor = "";
@@ -12115,7 +12125,7 @@ var CGSGNodeButton = CGSGNode.extend(
         }
     }
 );
-// Source: src/node/class.particles.js
+
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -12759,7 +12769,7 @@ var CGSGParticleSystem = CGSGNode.extend(
             return node;
         }
     }
-);// Source: src/class.scenegraph.js
+);
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -13127,7 +13137,7 @@ var CGSGSceneGraph = CGSGObject.extend(
         }
     }
 );
-// Source: src/class.view.js
+
 /*
  * Copyright (c) 2014 Gwennael Buchet
  *
@@ -13164,7 +13174,8 @@ var CGSGSceneGraph = CGSGObject.extend(
 var cgsgGlobalRenderingTimer = null;
 //var cgsgGlobalFramerate = CGSG_DEFAULT_FRAMERATE;
 (function () {
-var lastTime = 0;
+    "use strict";
+    var lastTime = 0;
     var vendors = ['ms', 'moz', 'webkit', 'o'];
     for (var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
         window.requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
