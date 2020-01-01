@@ -24,9 +24,12 @@
 /* jshint ignore:start */
 (function () {
     // The base CGSGObject implementation (does nothing)
-    this.CGSGObject = function () {
-    };
-
+    // this.CGSGObject = function () {
+    // };
+    if(this){
+        this.CGSGObject = function () {
+        };
+    }
     var initializing = false;
     var fnTest = /xyz/.test(function () {
         xyz;
